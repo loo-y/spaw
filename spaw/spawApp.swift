@@ -51,7 +51,7 @@ struct spawApp: App {
 //            let context = container.mainContext
             let context = sharedModelContainer.mainContext
             let notificationService = NotificationService(modelContext: context)
-            _notificationService = StateObject(wrappedValue: NotificationService(modelContext: context))
+            _notificationService = StateObject(wrappedValue: notificationService)
             appDelegate.notificationService = notificationService
 //            self.appDelegate = AppDelegate(notificationService: notificationService)
 //            UIApplication.shared.delegate = self.appDelegate

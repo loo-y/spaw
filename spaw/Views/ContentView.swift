@@ -48,12 +48,12 @@ struct ContentView: View {
 }
 
 
-#Preview {
-    let container = try! ModelContainer(for: Message.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    let context = container.mainContext
-    let notificationService = NotificationService(modelContext: context)
+// #Preview {
+//     let container = try! ModelContainer(for: Message.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+//     let context = container.mainContext
+//     let notificationService = NotificationService(modelContext: context)
     
-    return ContentView()
-        .modelContainer(container)
-        .environmentObject(notificationService)
-}
+//     return ContentView()
+//         .modelContainer(container)
+//         .environmentObject(notificationService)
+// }

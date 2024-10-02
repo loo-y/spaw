@@ -21,6 +21,7 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         super.init()
+        print("NotificationService 初始化")
         UNUserNotificationCenter.current().delegate = self
     }
     
@@ -55,11 +56,35 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
         // 这里你应该将 token 发送到你的服务器
     }
     
+    private var lastHandledNotificationId: String?
+    private var isHandlingNotification = false
+
     // 处理收到的推送通知
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        
         // 当在app内时，这个方法会被执行2次，不知道是什么原因
+        // 为了避免重复，设定 notificationId 和 isHandlingNotification
+        let notificationId = notification.request.identifier
+
+        // 检查是否正在处理通知
+        guard !isHandlingNotification else {
+            print("正在处理通知，跳过重复调用")
+            completionHandler([])
+            return
+        }
+        
+        // 检查是否是重复的通知
+        guard notificationId != lastHandledNotificationId else {
+            print("重复的通知，跳过处理")
+            completionHandler([])
+            return
+        }
+
+        isHandlingNotification = true
+        lastHandledNotificationId = notificationId
+
         let userInfo = notification.request.content.userInfo
         print("Received notification: \(userInfo)")
         // 获取推送的消息内容
@@ -99,6 +124,8 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
         } else {
             print("无法解析推送消息内容")
         }
+        
+        isHandlingNotification = false
         
         // 允许通知在前台显示
         completionHandler([.banner, .sound])
