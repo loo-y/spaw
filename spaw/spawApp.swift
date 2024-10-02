@@ -28,37 +28,18 @@ struct spawApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-    
-    // @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
-    private func requestNotificationPermissionAndRegister() {
-            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-                if granted {
-                    print("通知权限已授予111")
-                    DispatchQueue.main.async {
-                        UIApplication.shared.registerForRemoteNotifications()
-                        print("尝试注册远程通知")
-                    }
-                } else {
-                    print("通知权限被拒绝111")
-                }
-            }
-        }
+
 
     init() {
         do {
-//            let container = try ModelContainer(for: Message.self)
-//            let context = container.mainContext
             let context = sharedModelContainer.mainContext
             let notificationService = NotificationService(modelContext: context)
             _notificationService = StateObject(wrappedValue: notificationService)
             appDelegate.notificationService = notificationService
-//            self.appDelegate = AppDelegate(notificationService: notificationService)
-//            UIApplication.shared.delegate = self.appDelegate
 
             // 设置接收远程通知
 //            UIApplication.shared.registerForRemoteNotifications()
-//            requestNotificationPermissionAndRegister()
+
         } catch {
             fatalError("Failed to create ModelContainer: \(error.localizedDescription)")
         }
@@ -78,30 +59,8 @@ struct spawApp: App {
 
 }
 
-
-// 扩展 App 以处理远程通知
-// extension spawApp {
-//     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-//         print("尝试获取deviceToken")
-//         notificationService.registerDeviceToken(deviceToken)
-//     }
-    
-//     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-//         print("Failed to register for remote notifications: \(error)")
-//     }
-// }
-
 class AppDelegate: NSObject, UIApplicationDelegate {
     var notificationService: NotificationService?
-//    let notificationService: NotificationService
-    //
-    //    init(notificationService: NotificationService) {
-    //        print("appDelegate!!!")
-    //        self.notificationService = notificationService
-    //        super.init()
-    //    }
-    //
-
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         print("尝试获取deviceToken")
