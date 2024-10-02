@@ -43,6 +43,7 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
             print("Notification settings: \(settings)")
             DispatchQueue.main.async {
                 UIApplication.shared.registerForRemoteNotifications()
+                print("registerForRemoteNotifications")
             }
         }
     }
@@ -50,7 +51,7 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
     func registerDeviceToken(_ deviceToken: Data) {
         let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
         let token = tokenParts.joined()
-        print("Device Token: \(token)")
+        print("DeviceToken: \(token)")
         // 这里你应该将 token 发送到你的服务器
     }
     
@@ -58,14 +59,45 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // 当在app内时，这个方法会被执行2次，不知道是什么原因
         let userInfo = notification.request.content.userInfo
         print("Received notification: \(userInfo)")
-        
-        // 更新 lastMessage
-        if let message = userInfo["message"] as? String {
+        // 获取推送的消息内容
+        if let aps = userInfo["aps"] as? [String: Any],
+           let alert = aps["alert"] as? String {
+            print("推送消息内容 alert: \(alert)")
+            DispatchQueue.main.async {
+                self.lastMessage = alert
+                let newMessage = Message(title: "测试消息", content: alert, receivedDate: Date())
+                // 将新消息保存到SwiftData
+                self.modelContext.insert(newMessage)
+                
+                do {
+                    try self.modelContext.save()
+                    print("content:\(newMessage.content)")
+                    
+                } catch {
+                    print("Error saving message: \(error)")
+                }
+            }
+        } else if let message = userInfo["message"] as? String {
+            print("推送消息内容message: \(message)")
             DispatchQueue.main.async {
                 self.lastMessage = message
+                let newMessage = Message(title: "测试消息", content: message, receivedDate: Date())
+                // 将新消息保存到SwiftData
+                self.modelContext.insert(newMessage)
+                
+                do {
+                    try self.modelContext.save()
+                    print("content:\(newMessage.content)")
+                    
+                } catch {
+                    print("Error saving message: \(error)")
+                }
             }
+        } else {
+            print("无法解析推送消息内容")
         }
         
         // 允许通知在前台显示
