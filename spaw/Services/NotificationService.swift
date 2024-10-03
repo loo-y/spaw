@@ -17,6 +17,7 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
     @Published var lastMessage: String?
 //    @Environment(\.modelContext) private var modelContext
     private var modelContext: ModelContext
+    private var application: UIApplication? // 添加 application 属性
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -33,10 +34,20 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
             if granted {
                 print("通知权限已授予")
                 self?.getNotificationSettings()
+                self?.setNotificationSettings()
             } else {
                 print("通知权限被拒绝")
             }
         }
+    }
+
+    func setNotificationSettings(){
+        let copyAction = UNNotificationAction(identifier: "copy_action", title: "复制", options: [])
+        // let declineAction = UNNotificationAction(identifier: "decline_action", title: "拒绝", options: [])
+        let category = UNNotificationCategory(identifier: "QUICK_ACTIONS_CATEGORY", actions: [copyAction], intentIdentifiers: [], options: [])
+
+        UNUserNotificationCenter.current().setNotificationCategories([category])
+        print("setNotificationSettings")
     }
     
     func getNotificationSettings() {
@@ -49,7 +60,8 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
         }
     }
     
-    func registerDeviceToken(_ deviceToken: Data) {
+    func registerDeviceToken(_ deviceToken: Data, application: UIApplication) {
+        self.application = application;
         let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
         let token = tokenParts.joined()
         print("DeviceToken: \(token)")
@@ -154,10 +166,55 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
         let userInfo = response.notification.request.content.userInfo
+        let category = response.notification.request.content.categoryIdentifier
+        let actionIdentifier = response.actionIdentifier
         print("Responded to notification: \(userInfo)")
+        print("category: \(category)")
+        print("actionIdentifier: \(actionIdentifier)")
+//        let application = (UIApplication.shared.delegate as! AppDelegate).application // 获取 application 对象
         
         // 这里可以添加处理用户点击通知的逻辑
+        if category == "QUICK_ACTIONS_CATEGORY" {
+            switch actionIdentifier {
+                case "copy_action":
+                    // 处理接受操作
+                    print("copy_action");
+
+    //                if let url = URL(string: "spaw://") { // 替换为你的 app scheme
+    //                    application?.open(url) { success in
+    //                        if !success {
+    //                            // 处理打开失败的情况
+    //                            print("open failed")
+    //                        }else {
+    //                            if let aps = userInfo["aps"] as? [String: Any],
+    //                               let alert = aps["alert"] as? String {
+    //                                print("推送消息内容 alert: \(alert)")
+    //                                CommonUtil.copyToClipboard(content: alert)
+    //                            }
+    //                        }
+    //                    }
+    //                }
+    //                break;
+                case "decline_action":
+                    // 处理拒绝操作
+                    print("decline_action");
+                    break;
+                case UNNotificationDefaultActionIdentifier: // 用户点击了通知本身
+                    // 处理默认操作，例如打开应用
+                    print("UNNotificationDefaultActionIdentifier: \(UNNotificationDefaultActionIdentifier)")
+                    break;
+                default:
+                    print("default")
+                    break
+            }
+        }
         
+        if let aps = userInfo["aps"] as? [String: Any],
+           let alert = aps["alert"] as? String {
+            print("推送消息内容 alert: \(alert)")
+            CommonUtil.copyToClipboard(content: alert)
+        }
+        print("completionHandler")
         completionHandler()
     }
    

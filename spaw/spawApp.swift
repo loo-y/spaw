@@ -60,13 +60,15 @@ struct spawApp: App {
 
 }
 
-class AppDelegate: NSObject, UIApplicationDelegate {
+class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     var notificationService: NotificationService?
+    var application: UIApplication? // 添加 application 属性
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         print("尝试获取deviceToken")
+        self.application = application // 赋值
         print("Device Token: \(deviceToken.map { String(format: "%02.2hhx", $0) }.joined())") // 将 Data 转换为可打印的十六进制字符串
-        notificationService?.registerDeviceToken(deviceToken)
+        notificationService?.registerDeviceToken(deviceToken, application: application)
     }
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         print("Failed to register for remote notifications: \(error)")

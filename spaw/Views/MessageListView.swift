@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import SwiftUI
 
 struct MessageListView: View {
     @Environment(\.modelContext) private var modelContext
