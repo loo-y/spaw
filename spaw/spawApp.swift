@@ -19,6 +19,7 @@ struct spawApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Message.self,
+            UserSettings.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

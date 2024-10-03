@@ -80,21 +80,6 @@ struct MessageListView: View {
         }
         .contentShape(Rectangle()) // 确保整个视图都能响应点击事件
         .dismissKeyboardOnTap()
-//        .simultaneousGesture(
-//                TapGesture()
-//                    .onEnded {
-//                        print("Parent tapped")
-//                        hideKeyboard() // 点击空白处隐藏键盘
-//                    }
-//            )
-//        .onTapGesture {
-//            hideKeyboard() // 点击空白处隐藏键盘
-//        }
-//        .padding(.leading, 8)
-//        .padding(.trailing, 8)
-//        .onAppear {
-//            notificationService.requestAuthorization()
-//        }
     }
     
 }

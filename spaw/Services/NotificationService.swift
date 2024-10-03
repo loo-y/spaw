@@ -53,6 +53,24 @@ class NotificationService: NSObject, UNUserNotificationCenterDelegate, Observabl
         let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
         let token = tokenParts.joined()
         print("DeviceToken: \(token)")
+        
+        // 保存设备令牌到 SwiftData
+        let fetchDescriptor = FetchDescriptor<UserSettings>()
+        do {
+            let existingSettings = try self.modelContext.fetch(fetchDescriptor)
+            if let settings = existingSettings.last {
+                settings.setDeviceToken(token)
+            } else {
+                let newSettings = UserSettings(deviceToken: token)
+                self.modelContext.insert(newSettings)
+                print("no existingSettings")
+            }
+            try self.modelContext.save()
+            print("设备令牌已保存到 SwiftData")
+        } catch {
+            print("保存设备令牌时出错: \(error)")
+        }
+
         // 这里你应该将 token 发送到你的服务器
     }
     
