@@ -15,6 +15,7 @@ struct SettingsView: View {
     @Query private var messages: [Message]
     @AppStorage("serverURL") private var serverURL = ""
     @AppStorage("userToken") private var userToken = ""
+    @State private var alertSuccess: Bool = true
     @State private var showingAlert: Bool = false
     @State private var alertMessage: String = ""
     
@@ -74,6 +75,7 @@ struct SettingsView: View {
                             do {
                                 try self.modelContext.save()
                                 print("设置已成功保存到 UserSettings")
+                                alertSuccess = false
                                 // 调用 APIService 的 saveToken 方法
                                 // 检查所有必要信息是否都存在
                                 if !settings.serverURL.isEmpty && !settings.userToken.isEmpty && !settings.deviceToken.isEmpty {
@@ -81,6 +83,9 @@ struct SettingsView: View {
                                         do {
                                             try await APIService.saveToken(serverUrl: settings.serverURL, userToken: settings.userToken, deviceToken: settings.deviceToken)
                                             print("令牌已成功保存到服务器")
+                                            alertSuccess = true
+                                            showingAlert = true
+                                            alertMessage = "令牌已成功保存到服务器"
                                         } catch {
                                             print("保存令牌到服务器时出错: \(error)")
                                             // 显示错误弹窗 (方法1：使用alert状态变量)
@@ -127,7 +132,7 @@ struct SettingsView: View {
         }
         .dismissKeyboardOnTap()
         .alert(isPresented: $showingAlert) {
-            Alert(title: Text("错误"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            Alert(title: alertSuccess ? Text("提示") : Text("错误"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
     }
 }
