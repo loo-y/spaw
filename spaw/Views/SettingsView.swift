@@ -28,5 +28,6 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
         }
+        .dismissKeyboardOnTap()
     }
 }

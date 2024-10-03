@@ -43,3 +43,9 @@ struct ContentView: View {
 //         .modelContainer(container)
 //         .environmentObject(notificationService)
 // }
+
+extension View {
+    func dismissKeyboardOnTap() -> some View {
+        modifier(DismissKeyboardOnTap())
+    }
+}
