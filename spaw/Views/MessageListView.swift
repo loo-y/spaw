@@ -10,6 +10,7 @@ import SwiftData
 import SwiftUI
 
 struct MessageListView: View {
+    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject var notificationService: NotificationService
     @Query private var messages: [Message]
     @State private var simulatedMessage: String = ""
@@ -22,33 +23,48 @@ struct MessageListView: View {
     }
 
     var body: some View {
+        NavigationView {
         VStack {
-            List(messages.sorted(by: { $0.receivedDate > $1.receivedDate })) { message in
-                HStack { // 使用 HStack 包裹 VStack
-                    VStack(alignment: .leading) {
-                        Text(message.content)
-                            .padding(.leading, 16)
-                            .padding(.top, 8)
-                        Text(message.receivedDate.formatted(.dateTime.year().month().day().hour().minute().second()))
-                            .font(.caption)
-                            .foregroundColor(.gray)
-//                            .padding(.top, 1)
-                            .padding(.leading, 16) // 保持文本的左侧填充一致
-                        Text(" ")
-                            .padding(.bottom, -16) // 添加一个空白Text，否则最底部的分割线会跟随上面的文字一起padding
+            List {
+                ForEach(messages.sorted(by: { $0.receivedDate > $1.receivedDate })) { message in
+                    HStack { // 使用 HStack 包裹 VStack
+                        VStack(alignment: .leading) {
+                            Text(message.content)
+                                .padding(.leading, 16)
+                                .padding(.top, 8)
+                            Text(message.receivedDate.formatted(.dateTime.year().month().day().hour().minute().second()))
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                                .padding(.leading, 16) // 保持文本的左侧填充一致
+                            Text(" ")
+                                .padding(.bottom, -16) // 添加一个空白Text，否则最底部的分割线会跟随上面的文字一起padding
+                        }
+                        .listRowInsets(EdgeInsets()) // 移除默认行内边距
+                        Spacer()  // 使用 Spacer 将 VStack 内容推到左侧
                     }
-                    .listRowInsets(EdgeInsets()) // 移除默认行内边距
-                    Spacer()  // 使用 Spacer 将 VStack 内容推到左侧
+    //                .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())  // 使整个VStack区域都可以响应点击
+                    .listRowInsets(EdgeInsets())  // 移除默认行内边距
+                    .onTapGesture {
+                        print("clicked")
+                        copyToClipboard(content: message.content)
+                    }
                 }
-//                .frame(maxWidth: .infinity)
-                .contentShape(Rectangle())  // 使整个VStack区域都可以响应点击
-                .listRowInsets(EdgeInsets())  // 移除默认行内边距
-                .onTapGesture {
-                    print("clicked")
-                    copyToClipboard(content: message.content)
+                .onDelete { indexSet in
+                    for index in indexSet {
+                        let messageToDelete = messages.sorted(by: { $0.receivedDate > $1.receivedDate })[index]
+                        // 这里需要添加删除消息的逻辑，例如：
+                        modelContext.delete(messageToDelete)
+                        do {
+                            try self.modelContext.save()
+                            
+                        } catch {
+                            print("Error saving message: \(error)")
+                        }
+                    }
                 }
-                
             }
+            .listStyle(PlainListStyle())
             .toast(isPresented: $showToast, duration: 1.0) {
                 // TODO 当连续点击的时候，toast的内容没有消失
                 Text("内容已复制")
@@ -80,6 +96,8 @@ struct MessageListView: View {
         }
         .contentShape(Rectangle()) // 确保整个视图都能响应点击事件
         .dismissKeyboardOnTap()
+        .navigationTitle("消息")
+        }
     }
     
 }
